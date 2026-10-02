@@ -191,3 +191,22 @@ public static class SpikeSceneBuilder
         AssetDatabase.CreateFolder(parent, leaf);
     }
 }
+
+/// <summary>
+/// 远程触发钩子：工程 Temp/spike-build.request 存在时，编辑器编译完成后自动执行一次构建（供外部工具驱动，无标记则完全静默）。
+/// </summary>
+[InitializeOnLoad]
+internal static class SpikeAutoRun
+{
+    static SpikeAutoRun()
+    {
+        string marker = Path.Combine(Directory.GetCurrentDirectory(), "Temp", "spike-build.request");
+        if (!File.Exists(marker)) return;
+        File.Delete(marker);
+        EditorApplication.delayCall += () =>
+        {
+            try { Build(); }
+            catch (System.Exception e) { Debug.LogError("[STEP-1] 自动构建失败：" + e.Message); }
+        };
+    }
+}
