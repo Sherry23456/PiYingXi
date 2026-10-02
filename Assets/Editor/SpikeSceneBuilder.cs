@@ -60,8 +60,9 @@ public static class SpikeSceneBuilder
         AddShadowCaster(puppetGO);
 
         // 缺口皮影：默认隐藏；验证镂空时启用它并隐藏 Puppet_Greybox
+        // 剪影网格是实心 quad（无内部孔轮廓），镂空按"拆成独立 Shadow Caster 2D"预案用 4 条矩形路径围出孔洞
         var notchGO = SpriteGO("Puppet_Greybox_Notch", notch, lit, 0, new Vector3(4.2f, 0.6f, 0f), Vector3.one);
-        AddShadowCaster(notchGO);
+        AddNotchCasters(notchGO);
         notchGO.SetActive(false);
 
         // 灯 1：暖黄（拖灯脚本挂根上）
@@ -97,6 +98,38 @@ public static class SpikeSceneBuilder
                 ?? typeof(ShadowCaster2D).GetProperty("useRendererSilhouettes");
         if (prop != null) prop.SetValue(sc, true);
         else Debug.LogWarning("[STEP-1] 未找到 Use Renderer Silhouette 属性，请在 Inspector 手动勾选。");
+    }
+
+    // STEP-1 验证③镂空：2D 中封闭孔洞几何上不可达（进孔光线必先穿过框架），
+    // 改为"中缝直通"的两块板（模拟皮影部件间分缝）：光从中缝穿入，影子中央出现亮条
+    static void AddNotchCasters(GameObject go)
+    {
+        AddRectCaster(go, "Left",  -1.28f, -1.28f, -0.4f, 1.28f);
+        AddRectCaster(go, "Right",  0.4f, -1.28f, 1.28f, 1.28f);
+    }
+
+    static void AddRectCaster(GameObject parent, string name, float x0, float y0, float x1, float y1)
+    {
+        var go = new GameObject("NotchCaster_" + name);
+        go.transform.SetParent(parent.transform, false);
+        var sc = go.AddComponent<ShadowCaster2D>();
+        sc.castsShadows = true;
+        var silhouetteProp = typeof(ShadowCaster2D).GetProperty("useRendererSilhouette")
+                ?? typeof(ShadowCaster2D).GetProperty("useRendererSilhouettes");
+        if (silhouetteProp != null) silhouetteProp.SetValue(sc, false);
+        // shapePath 属性只读（CS0200）；SerializedObject 直写会被托管状态回写覆盖。
+        // 反射写托管私有字段 m_ShapePath（此版本为 Vector3[]），再重启用组件让影子网格按新路径重建
+        var field = typeof(ShadowCaster2D).GetField("m_ShapePath",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (field != null)
+        {
+            field.SetValue(sc, new Vector3[] {
+                new Vector3(x0, y0, 0f), new Vector3(x1, y0, 0f), new Vector3(x1, y1, 0f), new Vector3(x0, y1, 0f)
+            });
+            sc.enabled = false;
+            sc.enabled = true;
+        }
+        else Debug.LogWarning("[STEP-1] 未找到 m_ShapePath 字段，请在 Inspector 手动编辑 Freeform 形状。");
     }
 
     static GameObject MakeLantern(string name, Vector3 pos, Color lightColor, Sprite sprite, Material lit)
@@ -142,7 +175,7 @@ public static class SpikeSceneBuilder
     static Sprite BuildSprite(string assetName, int size, PixelFunc func)
     {
         string path = $"{ArtDir}/{assetName}.png";
-        if (AssetDatabase.LoadAssetAtPath<Sprite>(path) == null)
+        if (!File.Exists(path))
         {
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
             var px = new Color[size * size];
@@ -153,14 +186,28 @@ public static class SpikeSceneBuilder
             tex.Apply();
             File.WriteAllBytes(path, tex.EncodeToPNG());
             UnityEngine.Object.DestroyImmediate(tex);
-
-            var ti = (TextureImporter)AssetImporter.GetAtPath(path);
-            ti.textureType = TextureImporterType.Sprite;
-            ti.spritePixelsPerUnit = 100; // 公共约定 PPU=100
-            ti.alphaIsTransparency = true;
-            ti.mipmapEnabled = false;
-            ti.SaveAndReimport();
+            AssetDatabase.ImportAsset(path); // 先导入资源库，否则 GetAtPath 返回 null
         }
+
+        // 每次都强制 Single+FullRect 导入：Multiple 模式会把双板/镂空图自动切片，场景只引用到第一片
+        var ti = (TextureImporter)AssetImporter.GetAtPath(path);
+        if (ti == null)
+        {
+            AssetDatabase.ImportAsset(path);
+            ti = (TextureImporter)AssetImporter.GetAtPath(path);
+        }
+        var st = new TextureImporterSettings();
+        ti.ReadTextureSettings(st);
+        st.textureType = TextureImporterType.Sprite;
+        st.spriteMode = 1;
+        st.spriteMeshType = SpriteMeshType.FullRect;
+        st.spritePixelsPerUnit = 100; // 公共约定 PPU=100
+        st.spriteAlignment = (int)SpriteAlignment.Custom;
+        st.spritePivot = new Vector2(0.5f, 0.5f);
+        st.alphaIsTransparency = true;
+        st.mipmapEnabled = false;
+        ti.SetTextureSettings(st);
+        ti.SaveAndReimport();
         return AssetDatabase.LoadAssetAtPath<Sprite>(path);
     }
 
@@ -168,8 +215,8 @@ public static class SpikeSceneBuilder
 
     static Color NotchPuppet(int x, int y, int w, int h)
     {
-        float dx = x - w / 2f + 0.5f, dy = y - h / 2f + 0.5f;
-        if (dx * dx + dy * dy < 44f * 44f) return Color.clear; // 中央圆孔 → 影子镂空验证
+        // 与 AddNotchCasters 一致：两块板 + 中央直通缝（缝 x 88..168px = ±0.4 单位）
+        if (x >= 88f && x <= 168f) return Color.clear;
         return new Color(0.09f, 0.08f, 0.08f, 1f);
     }
 
@@ -205,7 +252,7 @@ internal static class SpikeAutoRun
         File.Delete(marker);
         EditorApplication.delayCall += () =>
         {
-            try { Build(); }
+            try { SpikeSceneBuilder.Build(); }
             catch (System.Exception e) { Debug.LogError("[STEP-1] 自动构建失败：" + e.Message); }
         };
     }
