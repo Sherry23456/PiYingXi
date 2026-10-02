@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 /// <summary>
@@ -81,6 +82,14 @@ public class PuppetDragger : MonoBehaviour
     {
         joint = null;
         puppet = null;
+
+        // STEP-3：指针压在 UI（开演/提示/结果面板按钮）上时不抓场景物体
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            kind = DragKind.None;
+            CurrentHitName = "-";
+            return;
+        }
 
         Collider2D col = TopmostAt(world);
         if (col == null)

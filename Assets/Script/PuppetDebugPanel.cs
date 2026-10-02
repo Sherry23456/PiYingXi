@@ -28,6 +28,16 @@ public class PuppetDebugPanel : MonoBehaviour
                 sb.AppendLine($"  {j.partName}: {j.localAngle:0.#} deg");
         }
 
+        // ---- STEP-3 判定误差（排查"看着对了却不过"） ----
+        foreach (var gh in FindObjectsByType<GhostHint>(FindObjectsSortMode.None))
+            sb.AppendLine($"Ghost: {gh.CurrentMode}");
+        foreach (var pj in FindObjectsByType<PoseJudge>(FindObjectsSortMode.None))
+            sb.AppendLine(pj.DescribeErrors());
+        foreach (var lj in FindObjectsByType<LampJudge>(FindObjectsSortMode.None))
+            sb.AppendLine(lj.DescribeErrors());
+        foreach (var dir in FindObjectsByType<PerformanceDirector>(FindObjectsSortMode.None))
+            sb.AppendLine(dir.DescribeState());
+
         label.text = sb.ToString();
     }
 }
