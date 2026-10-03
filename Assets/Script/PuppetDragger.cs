@@ -110,7 +110,7 @@ public class PuppetDragger : MonoBehaviour
         }
 
         puppet = col.GetComponentInParent<ShadowPuppet>();
-        if (puppet != null)
+        if (puppet != null && puppet.draggable) // 不可拖动的皮影（数据表配置）不响应，灯等其余物体也不抢
         {
             kind = DragKind.MoveRoot;
             grabOffset = puppet.transform.position - world;

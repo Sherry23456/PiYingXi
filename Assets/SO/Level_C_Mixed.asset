@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f44df9f2b6cf5964f9106efb2311b688, type: 3}
+  m_Name: Level_C_Mixed
+  m_EditorClassIdentifier: Assembly-CSharp::LevelConfig
+  levelId: 3
+  displayName: "\u5173C \xB7 \u6DF7\u5408"
+  storyIntro: "\u624B\u8981\u7A33\uFF0C\u706F\u8981\u51C6\u3002\n\u5F71\u4EBA\u6446\u6B63\uFF0C\u6708\u5149\u5957\u5F71\u2014\u2014\n\u597D\u620F\uFF0C\u8FD9\u5C31\u5F00\u6F14\u3002"
+  knowledgeCard: "\u4F20\u7EDF\u5F71\u4EBA\u591A\u7528\u725B\u76AE\u3001\u9A74\u76AE\u9542\u523B\u4E0A\u8272\uFF0C\u6545\u6709\u201C\u9A74\u76AE\u5F71\u201D\u4E4B\u79F0\uFF1B\u5F71\u4EBA\u901A\u4F53\u900F\u4EAE\uFF0C\u9760\u7684\u662F\u76AE\u7684\u901A\u900F\u4E0E\u706F\u7684\u5DE7\u7528\u3002"
+  knowledgePendingReview: 1
+  hintText: "\u5173C \xB7 \u6DF7\u5408\uFF1A\u6446\u5BF9\u76AE\u5F71 + \u5F71\u5B50\u8FDB\u73AF\uFF0C\u518D\u70B9[\u5F00\u6F14]"
+  puppets:
+  - prefab: {fileID: 3830981994616083534, guid: bd9a7e45c9abb464c8f3e63b238b865c, type: 3}
+    initialPos: {x: -4.5, y: -1.6}
+    canDrag: 1
+    judgePose: 1
+    initialAngles:
+    - partName: ArmL
+      angle: 0
+    - partName: ArmR
+      angle: 0
+    targetPos: {x: 1.6, y: -1.6}
+    targetAngles:
+    - partName: ArmL
+      angle: 15
+    - partName: ArmR
+      angle: -15
+  lamps:
+  - lampName: Lantern_Warm
+    pos: {x: 5.8, y: 4.2}
+    color: {r: 1, g: 0.82, b: 0.55, a: 1}
+    intensity: 1
+    outerRadius: 6
+    canDrag: 1
+    shadowTarget:
+      judge: 1
+      targetPos: {x: 1.74, y: -2.08}
+      targetRadius: 2.52
+  props: []
+  tolerance:
+    useOverride: 0
+    angleTolerance: 8
+    rootPosTolerance: 0.35
+    shadowPosTolerance: 0.5
+    shadowSizeTolerance: 0.25
+  ghostHintSprite: {fileID: 0}
+  performanceTimeline: {fileID: 0}
+  bgm: {fileID: 0}
+  targetSilhouetteSprite: {fileID: 0}
+  parTime: 0

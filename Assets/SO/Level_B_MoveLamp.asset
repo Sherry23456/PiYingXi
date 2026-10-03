@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f44df9f2b6cf5964f9106efb2311b688, type: 3}
+  m_Name: Level_B_MoveLamp
+  m_EditorClassIdentifier: Assembly-CSharp::LevelConfig
+  levelId: 2
+  displayName: "\u5173B \xB7 \u79FB\u706F"
+  storyIntro: "\u706F\u662F\u5F71\u5B50\u7684\u9B42\u3002\n\u706F\u632A\u4E00\u5BF8\uFF0C\u5F71\u53D8\u4E00\u5206\u3002\n\u628A\u5F71\u5B50\u9001\u8FDB\u90A3\u5708\u6708\u5149\u91CC\u3002"
+  knowledgeCard: "\u201C\u4E00\u53E3\u53D9\u8BF4\u5343\u53E4\u4E8B\uFF0C\u53CC\u624B\u5BF9\u821E\u767E\u4E07\u5175\u201D\u2014\u2014\u706F\u79BB\u5F71\u4EBA\u8D8A\u8FD1\uFF0C\u5E55\u5E03\u4E0A\u7684\u5F71\u5B50\u8D8A\u5927\uFF1B\u706F\u504F\u79FB\uFF0C\u5F71\u5B50\u4E5F\u968F\u4E4B\u504F\u659C\u3002"
+  knowledgePendingReview: 1
+  hintText: "\u5173B \xB7 \u79FB\u706F\uFF1A\u62D6\u52A8\u706F\uFF0C\u8BA9\u5F71\u5B50\u5957\u8FDB\u73AF\u5F62\u76EE\u6807\u7EBF"
+  puppets:
+  - prefab: {fileID: 5994524483298244829, guid: 6769920846527384eb288ef19c7804d4, type: 3}
+    initialPos: {x: 0, y: -1.6}
+    canDrag: 0
+    judgePose: 0
+    initialAngles:
+    - partName: ArmL
+      angle: 0
+    - partName: ArmR
+      angle: 0
+    targetPos: {x: 0, y: -1.6}
+    targetAngles: []
+  lamps:
+  - lampName: Lantern_Warm
+    pos: {x: 6.2, y: 4}
+    color: {r: 1, g: 0.82, b: 0.55, a: 1}
+    intensity: 1
+    outerRadius: 6
+    canDrag: 1
+    shadowTarget:
+      judge: 1
+      targetPos: {x: 0.04, y: -2.09}
+      targetRadius: 2.27
+  props: []
+  tolerance:
+    useOverride: 0
+    angleTolerance: 8
+    rootPosTolerance: 0.35
+    shadowPosTolerance: 0.5
+    shadowSizeTolerance: 0.25
+  ghostHintSprite: {fileID: 0}
+  performanceTimeline: {fileID: 0}
+  bgm: {fileID: 0}
+  targetSilhouetteSprite: {fileID: 0}
+  parTime: 0

@@ -9,7 +9,10 @@ using UnityEngine.UI;
 
 /// <summary>
 /// STEP-3 演出结果 UI（自建 Canvas，无需预制）：
-///   成功：星级逐个弹出 + "下一关/重玩"；失败：面板抖动 + 提示未达标部件 + 幽灵影红标高亮 2 秒。
+///   成功：星级逐个弹出 + "下一关/重玩" + 知识卡（STEP-4 起，未审校挂"待审校"角标）；
+///   失败：面板抖动 + 提示未达标部件 + 幽灵影红标高亮 2 秒。
+/// STEP-4：重玩/下一关改走 LevelManager 注入的回调（onRetry/onNext）；
+///   回调为空时回退旧的"按 Build 索引切场景"（兼容 STEP-3 老场景）。
 /// 失败高亮走 GhostHint.ShowFailHighlightFor（灰盒期红染代替红框描边，美术期再换）。
 /// </summary>
 public class PlayResultUI : MonoBehaviour
@@ -19,28 +22,46 @@ public class PlayResultUI : MonoBehaviour
     public float failHighlightSeconds = 2f;
     public GhostHint ghostHint;
 
+    [Header("STEP-4 流程回调（LevelManager 注入；空 = 旧版按场景索引）")]
+    public System.Action onRetry;
+    public System.Action onNext;
+    [Tooltip("下一关按钮文案（最后一关时 LevelManager 会改成“回选关”）")]
+    public string nextLabel = "下一关";
+
     private Canvas canvas;
     private GameObject panel;
     private RectTransform panelRect;
     private TMP_Text titleText;
     private TMP_Text starsText;
     private TMP_Text hintText;
+    private TMP_Text cardText;
     private Button nextButton;
     private Button retryButton;
 
-    private void Awake()
+    private void Start()
     {
+        // 用 Start 而非 Awake：LevelManager 运行时 AddComponent 后才赋 font/ghostHint，
+        // Awake 会立即 Build 导致字体回落 TMP 默认（中文变方块）
         EnsureEventSystem();
         Build();
         Hide();
     }
 
-    public void ShowSuccess(int stars)
+    public void ShowSuccess(int stars, string knowledgeCard = null, bool pendingReview = false)
     {
         gameObject.SetActive(true);
         titleText.text = "开演成功！";
         hintText.text = "";
-        nextButton.gameObject.SetActive(SceneManager.GetActiveScene().buildIndex + 1 < SceneManager.sceneCountInBuildSettings);
+        if (cardText != null)
+        {
+            bool hasCard = !string.IsNullOrEmpty(knowledgeCard);
+            cardText.gameObject.SetActive(hasCard);
+            if (hasCard)
+                cardText.text = $"知识卡：{knowledgeCard}" + (pendingReview ? "\n（待审校）" : "");
+        }
+        var lbl = nextButton.GetComponentInChildren<TMP_Text>();
+        if (lbl != null) lbl.text = nextLabel;
+        nextButton.gameObject.SetActive(onNext != null);
         Show();
         StartCoroutine(PopStars(stars));
     }
@@ -81,8 +102,17 @@ public class PlayResultUI : MonoBehaviour
     private void Show() => panel.SetActive(true);
     private void Hide() => panel.SetActive(false);
 
-    private void OnRetry() => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    private void OnNext() => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+    private void OnRetry()
+    {
+        if (onRetry != null) { onRetry(); return; }
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    private void OnNext()
+    {
+        if (onNext != null) { onNext(); return; }
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+    }
 
     // ---------- 自建 UI ----------
 
@@ -112,7 +142,7 @@ public class PlayResultUI : MonoBehaviour
         panelRect = panel.AddComponent<RectTransform>();
         panelRect.anchorMin = panelRect.anchorMax = panelRect.pivot = new Vector2(0.5f, 0.5f);
         panelRect.anchoredPosition = Vector2.zero;
-        panelRect.sizeDelta = new Vector2(760f, 430f);
+        panelRect.sizeDelta = new Vector2(760f, 520f);
         var bg = panel.AddComponent<Image>();
         bg.sprite = BuiltinSprite();
         bg.color = new Color(0.09f, 0.06f, 0.05f, 0.94f);
@@ -121,10 +151,14 @@ public class PlayResultUI : MonoBehaviour
             new Vector2(0.5f, 1f), new Vector2(0f, -36f), new Vector2(700f, 80f));
 
         starsText = MakeText(panel.transform, "Stars", 96f, new Color(1f, 0.82f, 0.3f, 1f),
-            new Vector2(0.5f, 0.5f), new Vector2(0f, 20f), new Vector2(700f, 130f));
+            new Vector2(0.5f, 0.5f), new Vector2(0f, 105f), new Vector2(700f, 110f));
 
         hintText = MakeText(panel.transform, "Hint", 28f, new Color(0.9f, 0.75f, 0.6f, 1f),
-            new Vector2(0.5f, 0.5f), new Vector2(0f, -60f), new Vector2(700f, 60f));
+            new Vector2(0.5f, 0.5f), new Vector2(0f, -5f), new Vector2(700f, 50f));
+
+        cardText = MakeText(panel.transform, "KnowledgeCard", 24f, new Color(0.78f, 0.72f, 0.58f, 1f),
+            new Vector2(0.5f, 0.5f), new Vector2(0f, -122f), new Vector2(700f, 140f));
+        cardText.gameObject.SetActive(false);
 
         retryButton = MakeButton(panel.transform, "重玩", new Vector2(0.5f, 0f), new Vector2(-115f, 36f), new Vector2(190f, 64f),
             new Color(0.55f, 0.18f, 0.1f, 1f), OnRetry);

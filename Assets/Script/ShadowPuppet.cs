@@ -16,6 +16,9 @@ public class ShadowPuppet : MonoBehaviour
     [Tooltip("0 = 即时跟随；>0 = 平滑跟随，值越大越跟手（默认 20）")]
     public float dragLerp = 20f;
 
+    [Tooltip("本影人是否可拖动（STEP-4 起由 LevelConfig 数据控制，如移灯关固定皮影）")]
+    public bool draggable = true;
+
     public bool IsDragging { get; private set; }
 
     private Vector3? dragTarget;
